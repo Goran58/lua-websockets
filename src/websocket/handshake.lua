@@ -1,4 +1,5 @@
-local sha1 = require'websocket.tools'.sha1
+--local sha1 = require'websocket.tools'.sha1
+local sha1 = require'sha1'
 local base64 = require'websocket.tools'.base64
 local tinsert = table.insert
 
@@ -6,7 +7,8 @@ local guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 local sec_websocket_accept = function(sec_websocket_key)
   local a = sec_websocket_key..guid
-  local sha1 = sha1(a)
+  --local sha1 = sha1(a)
+  local sha1 = sha1.binary(a)
   assert((#sha1 % 2) == 0)
   return base64.encode(sha1)
 end

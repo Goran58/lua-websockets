@@ -1,7 +1,7 @@
 local frame = require'websocket.frame'
 local handshake = require'websocket.handshake'
 local tools = require'websocket.tools'
-local ssl = require'cosock.ssl'
+local ssl = require'ssl'
 local tinsert = table.insert
 local tconcat = table.concat
 
@@ -29,12 +29,22 @@ local receive = function(self)
     if err then
       return clean(false,1006,err)
     end
-    encoded = encoded..chunk
+    --if chunk ~= nil then
+      encoded = encoded..chunk
+    --end
     local decoded,fin,opcode,_,masked = frame.decode(encoded)
     if not self.is_server and masked then
       return clean(false,1006,'Websocket receive failed: frame was not masked')
     end
     if decoded then
+      --if opcode == frame.PING then
+      --  local new_encoded = frame.encode(decoded,frame.PONG,not self.is_server)
+      --  local n,err = self:sock_send(new_encoded)
+      --  if n ~= #new_encoded then
+      --    return clean(false,1006,err)
+      --  end
+      --  return decoded,opcode
+      --elseif opcode == frame.CLOSE then
       if opcode == frame.CLOSE then
         if not self.is_closing then
           local code,reason = frame.decode_close(decoded)
@@ -134,25 +144,13 @@ local connect = function(self,ws_url,ws_protocol,ssl_params)
   if protocol == 'wss' then
     self.sock, err = ssl.wrap(self.sock, ssl_params)
     if self.sock == false then
-      return nil, 'failed to setup ssl socket'
+      print('UNABLE TO SETUP SSL SOCKET: ', err)
     else
-      local succ, msg
-      self.sock:sni(host)
-      while not succ do
-        succ, msg = self.sock:dohandshake()
-        if msg == "wantread" then
-          socket.select({self.sock}, nil)
-        elseif msg == "wantwrite" then
-          socket.select(nil, {self.sock})
-        elseif msg then
-          return nil, 'SSL handshake failed, err:' + msg
-        end
-      end
+      self.sock:dohandshake()
     end
   elseif protocol ~= "ws" then
     return nil, 'bad protocol'
   end
-
   local ws_protocols_tbl = {''}
   if type(ws_protocol) == 'string' then
       ws_protocols_tbl = {ws_protocol}
@@ -188,7 +186,7 @@ local connect = function(self,ws_url,ws_protocol,ssl_params)
     return nil,msg:format(expected_accept,headers['sec-websocket-accept'] or 'nil'),headers
   end
   self.state = 'OPEN'
-  return true,headers['sec-websocket-protocol'],headers,self.sock
+  return true,headers['sec-websocket-protocol'],headers
 end
 
 local extend = function(obj)

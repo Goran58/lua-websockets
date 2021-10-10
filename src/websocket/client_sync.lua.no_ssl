@@ -8,15 +8,19 @@ local new = function(ws)
   local self = {}
   
   self.sock_connect = function(self,host,port)
+
     self.sock = socket.tcp()
     if ws.timeout ~= nil then
       self.sock:settimeout(ws.timeout)
     end
-    local _,err = self.sock:connect(host,port)
+    local s,err = self.sock:connect(host,port)
     if err then
       self.sock:close()
       return nil,err
     end
+    driver:register_channel_handler(self.sock, function ()
+      my_ws_tick()
+    end)
   end
   
   self.sock_send = function(self,...)
