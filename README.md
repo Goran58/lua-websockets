@@ -1,4 +1,4 @@
-# This forked is adapted to Smartthings Edge usage
+# This fork of lua-websockets is adapted to Smartthings Edge usage
 ## Example usage Smartthings Edge driver
 ```lua
 local ws = require('websocket.client').sync({ timeout = 30 })
