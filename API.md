@@ -1,3 +1,6 @@
+# Adapted to Smarthings Edge
+
+
 # Client Sync and Copas
 
 Besides its creation, the Sync and Copas interfaces are identical. The Copas Client performs all socket operations with the copas non-blocking calls though.
